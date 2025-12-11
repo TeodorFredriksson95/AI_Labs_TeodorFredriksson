@@ -1,5 +1,5 @@
 
-# A Lab Assignment 01
+# AI Lab 01
 ## Overview
 The purpose of this README is primarily to document my progress related to the assignment **"A Simple FSM**, including my answers to the given checkpoint questions which are part of the assignment.
 
