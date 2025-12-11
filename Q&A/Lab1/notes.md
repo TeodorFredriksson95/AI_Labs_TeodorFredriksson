@@ -1,7 +1,5 @@
 
 # AI Lab 01
-## Overview
-The purpose of this README is primarily to document my progress related to the assignment **"A Simple FSM**, including my answers to the given checkpoint questions which are part of the assignment.
 
 ## Research ##
 1. In your own words, what is a state in game AI? Give two examples.
