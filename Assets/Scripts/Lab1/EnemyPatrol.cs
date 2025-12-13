@@ -153,7 +153,7 @@ public class EnemyPatrol : MonoBehaviour
             Vector3 forward = transform.forward;
 
             // Half-angle in radians
-            float halfFOVRad = Mathf.Deg2Rad * 180 * 0.5f; // 180 deg
+            //float halfFOVRad = Mathf.Deg2Rad * 180 * 0.5f; // 180 deg
 
             // Calculate directions for the left and right edges of the FOV
             Vector3 leftEdge = Quaternion.Euler(0, -180 * 0.5f, 0) * forward;

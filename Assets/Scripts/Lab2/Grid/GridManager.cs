@@ -170,7 +170,8 @@ public class GridManager : MonoBehaviour
     public void SetTileMaterial(Node node, Material mat)
     {
         MeshRenderer renderer = node.tile.GetComponent<MeshRenderer>();
-        if (renderer != null && mat != null)
+        var something = renderer.material;
+        if (renderer != null && renderer.material != null)
             renderer.material = mat;
     }
 
