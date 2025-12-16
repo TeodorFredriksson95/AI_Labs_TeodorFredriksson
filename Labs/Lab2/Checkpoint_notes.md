@@ -1,6 +1,6 @@
 # Lab 2 – Checkpoint Questions
 
-## 1.1 Grid Basics
+## Grid Basics
 
 ### 1. In your own words, what is a node and what is an edge in this grid?
 Describe what a grid tile represents as a node, and what connections between tiles represent as edges.
