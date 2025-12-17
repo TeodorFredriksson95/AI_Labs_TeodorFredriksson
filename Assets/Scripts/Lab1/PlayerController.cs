@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 lookVal;
     Quaternion rotation;
 
+    public Vector3 playerVelocity;
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -53,6 +54,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 moveDir = transform.forward * moveVal.y;
         Vector3 nextPos = rb.position + moveDir * moveSpeed * Time.deltaTime;
+        playerVelocity = rb.linearVelocity;
         rb.MovePosition(nextPos);
 
     }

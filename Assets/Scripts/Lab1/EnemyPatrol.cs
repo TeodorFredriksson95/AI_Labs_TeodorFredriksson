@@ -82,8 +82,6 @@ public class EnemyPatrol : MonoBehaviour
         if (patrolPoints.Length == 0) return;
 
         Vector3 agentDirection = transform.TransformDirection(Vector3.forward);
-        Vector3 directionToPlayer = Vector3.Normalize(Player.transform.position - transform.position);
-
         float distance = Vector3.Distance(transform.position, Player.transform.position);
 
         if (distance <= aggroRadius)
@@ -98,8 +96,8 @@ public class EnemyPatrol : MonoBehaviour
             agent.SetDestination(patrolPoints[destPoint].position);
             destPoint = (destPoint + 1) % patrolPoints.Length;
         }
-
     }
+
     void Investigate()
     {
         agent.SetDestination(lastKnownPlayerPosition);
