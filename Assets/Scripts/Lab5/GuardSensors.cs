@@ -1,7 +1,7 @@
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class GuardSensor : MonoBehaviour
+public class GuardSensors : MonoBehaviour
 {
     public Transform player;
     public float viewRange = 10f;

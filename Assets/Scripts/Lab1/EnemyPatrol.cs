@@ -19,7 +19,7 @@ public class EnemyPatrol : MonoBehaviour
     [Header("Target")]
     public Transform Player;
 
-    
+
 
     [Header("Patrol Points")]
     public Transform[] patrolPoints;
@@ -59,7 +59,7 @@ public class EnemyPatrol : MonoBehaviour
 
     private void Update()
     {
-        
+
 
         switch (currentState)
         {
@@ -171,7 +171,7 @@ public class EnemyPatrol : MonoBehaviour
         }
     }
 
-        bool CanSeePlayer()
+    bool CanSeePlayer()
     {
         Vector3 toPlayer = Player.position - transform.position;
 
@@ -190,7 +190,7 @@ public class EnemyPatrol : MonoBehaviour
         {
             if (hit.collider.CompareTag("Player"))
             {
-                lastKnownPlayerPosition = hit.transform.position; 
+                lastKnownPlayerPosition = hit.transform.position;
                 return true;
             }
             else

@@ -13,6 +13,10 @@ public enum OffMeshLinkMoveMethod
 [RequireComponent(typeof(NavMeshAgent))]
 public class AgentLinkMover : MonoBehaviour
 {
+
+    [Header("Jump stats")]
+    [SerializeField] float height = 5.0f;
+    [SerializeField] float duration = 1.5f;
     public OffMeshLinkMoveMethod m_Method = OffMeshLinkMoveMethod.Parabola;
     public AnimationCurve _Curve = new AnimationCurve();
 
@@ -27,7 +31,7 @@ public class AgentLinkMover : MonoBehaviour
                 if (m_Method == OffMeshLinkMoveMethod.NormalSpeed)
                     yield return StartCoroutine(NormalSpeed(agent));
                 else if (m_Method == OffMeshLinkMoveMethod.Parabola)
-                    yield return StartCoroutine(Parabola(agent, 3.0f, 0.5f));
+                    yield return StartCoroutine(Parabola(agent, height, duration));
                 else if (m_Method == OffMeshLinkMoveMethod.Curve)
                     yield return StartCoroutine(Curve(agent, 0.5f));
                 agent.CompleteOffMeshLink();

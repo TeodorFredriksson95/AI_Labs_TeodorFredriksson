@@ -1,4 +1,7 @@
+using System;
+using System.Transactions;
 using Unity.Collections;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
@@ -6,10 +9,24 @@ using UnityEngine.Rendering;
 
 public class RollingBallController : MonoBehaviour
 {
+    public enum RTBState
+    {
+        Patrolling,
+        Startled,
+        RunningAway,
+        ReturningToPatrol
+    }
+
     [SerializeField] float rotationSpeed = 90f; // degrees per second
+    [SerializeField] float jumpForce = 5f;
+    private float gravity = -9.8f;
+    private float verticalVelocity;
     [SerializeField] Transform[] waypoints;
     private int destPoint = 0;
 
+    bool isJumping = false;
+    float groundY;
+    float detectionRadius = 4f;
     NavMeshAgent agent;
 
     Transform visualMesh;
@@ -18,13 +35,27 @@ public class RollingBallController : MonoBehaviour
     [SerializeField] float fleeRadius = 3f;
     [SerializeField] float fleeMaxSpeed = 10f;
     [SerializeField] float fleeTimer = 5f;
-    [SerializeField] float evadeWeight = 0.2f;
     private float fleeTimerCounter = 0f;
+    [SerializeField] float evadeWeight = 0.2f;
     private bool isFleeing = false;
 
     [SerializeField] private Vector3 currentVelocity;
 
     Transform farthestWaypoint;
+    bool isGrounded = true;
+    
+    RTBState currentState = RTBState.Patrolling;
+
+    private Vector3 tempVelocity;
+    private Vector3 lastKnownPlayerLocation;
+
+    [Header("Frontal Detection range")]
+    [Range(0, 360)] public float fovAngle = 180f;
+    public float Fov;
+    [SerializeField] float detectionRange;
+
+    [Header("Debug")]
+    [SerializeField] bool shouldBallBeStill;
 
     private void Start()
     {
@@ -33,33 +64,174 @@ public class RollingBallController : MonoBehaviour
         player = FindFirstObjectByType<PlayerController>();
     }
 
+    void StartJump()
+    {
+        isJumping = true;
+        isGrounded = false;
+
+        tempVelocity = agent.velocity;
+        agent.velocity = Vector3.zero;
+
+        agent.isStopped = true;
+        agent.updatePosition = false;
+        agent.updateRotation = false;
+
+        groundY = transform.position.y;
+        verticalVelocity = jumpForce;
+    }
+
+    void Land()
+    {
+        Vector3 pos = transform.position;
+        pos.y = groundY;
+        transform.position = pos;
+
+        agent.velocity = tempVelocity;
+        verticalVelocity = 0f;
+        isJumping = false;
+        isGrounded = true;
+
+        agent.Warp(transform.position);
+        agent.updatePosition = true;
+        agent.updateRotation = true;
+        agent.isStopped = false;
+    }
+
+
+    bool IsPlayerInRearHalfCircle()
+    {
+        Vector3 toPlayer = player.transform.position - transform.position;
+        toPlayer.y = 0f;
+
+        if (toPlayer.magnitude > detectionRadius)
+            return false;
+
+        float dot = Vector3.Dot(transform.forward, toPlayer.normalized);
+        return dot < 0f;
+    }
+
+
+    void Patrolling()
+    {
+        if (IsPlayerInRearHalfCircle() && !agent.isOnOffMeshLink)
+        {
+            Debug.Log("Was startled");
+            currentState = RTBState.Startled;
+            return;
+        }
+
+        GoToNextWaypoint();
+    }
+
+    void JumpScare()
+    {
+        if (!isJumping && isGrounded)
+            StartJump();
+
+        if (isJumping)
+        {
+            verticalVelocity += gravity * Time.deltaTime;
+
+            transform.position += Vector3.up * verticalVelocity * Time.deltaTime;
+
+            if (transform.position.y <= groundY)
+            {
+                Land();
+                currentState = RTBState.RunningAway;
+            }
+
+        }
+    }
+
     void Update()
     {
-        currentVelocity = agent.velocity;
+        if (CanSeePlayer())
+            Debug.Log("Can see player");
 
-        float distanceToPlayer = (transform.position - player.transform.position).magnitude;
+        currentVelocity = agent.velocity;
 
         float rollAmount = agent.velocity.magnitude * rotationSpeed * Time.deltaTime;
         visualMesh.Rotate(Vector3.right, rollAmount, Space.Self);
 
-        if (!isFleeing)
-            GoToNextWaypoint(true);
-
-        if (distanceToPlayer < fleeRadius)
+        switch (currentState)
         {
-            isFleeing = true;
+            case RTBState.Patrolling:
+                Patrolling();
+                break;
+            case RTBState.Startled:
+                JumpScare();
+                break;
+            case RTBState.RunningAway:
+                if (fleeTimerCounter < fleeTimer)
+                {
+                    fleeTimerCounter += Time.deltaTime;
+                    Flee();
+                }
+                else
+                {
+                    SetSafePatrolPoint();
+                    fleeTimerCounter = 0f;
+                }
+                break;
+            case RTBState.ReturningToPatrol:
+                ReturnToPatrol();
+                break;
+        }
 
-            if (isFleeing && fleeTimerCounter < fleeTimer)
+    }
+
+    void ReturnToPatrol()
+    {
+        if (!agent.pathPending && agent.remainingDistance < 0.5f)
+            currentState = RTBState.Patrolling;
+    }
+
+    void SetSafePatrolPoint()
+    {
+        Debug.Log("SetSafePatrolPoint triggered");
+        float dotProd = 0f;
+
+        for (int i = 0; i < waypoints.Length; i++)
+        {
+            Vector3 toWaypoint = waypoints[i].position - player.transform.position;
+            dotProd = Vector3.Dot(player.transform.forward, toWaypoint.normalized);
+            if (dotProd > 0)
             {
-                fleeTimerCounter += Time.deltaTime;
-                Flee();
+                agent.SetDestination(waypoints[i].position);
+                destPoint = Array.IndexOf(waypoints, waypoints[i]);
+                currentState = RTBState.ReturningToPatrol;
+                return;
             }
         }
-        if (fleeTimerCounter >= fleeTimer)
+
+        if (dotProd < 0)
         {
-            isFleeing = false;
-            fleeTimerCounter = 0f;
+            int rndIdx = UnityEngine.Random.Range(0, waypoints.Length);
+            destPoint = rndIdx;
+            agent.SetDestination(waypoints[destPoint].position);
+            currentState = RTBState.ReturningToPatrol;
         }
+    }
+
+    bool CanSeePlayer()
+    {
+        Collider[] targetsInFov = Physics.OverlapSphere(transform.position, Fov);
+
+        foreach (Collider c in targetsInFov)
+        {
+            if (c.CompareTag("Player"))
+            {
+                float signedAngle = Vector3.Angle(transform.forward, c.transform.position - transform.position);
+
+                if (Math.Abs(signedAngle) < fovAngle / 2)
+                {
+                    currentState = RTBState.RunningAway;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private void Evade()
@@ -79,54 +251,20 @@ public class RollingBallController : MonoBehaviour
 
     private void Flee()
     {
-        Debug.Log("Flee was triggered");
 
         Vector3 toMe = transform.position - player.transform.position;
         Vector3 desiredVelocity = toMe.normalized * fleeMaxSpeed;
         Vector3 steering = desiredVelocity - agent.velocity;
-        //steering = Vector3.ClampMagnitude(steering, fleeMaxSpeed);
-
-        float dotProd;
-
-        float distWaypointToPlayer = float.MinValue;
-
-        for (int i = 0; i < waypoints.Length; i++)
-        {
-            dotProd = Vector3.Dot(transform.position, waypoints[i].position);
-            if (dotProd > 0)
-            {
-                agent.SetDestination(waypoints[i].position);
-                break;
-            }
-
-            //float waypointDist = Vector3.Distance(waypoints[i].position, player.transform.position);
-
-            //if (waypointDist > distWaypointToPlayer)
-            //{
-            //    distWaypointToPlayer = waypointDist;
-            //    agent.SetDestination(waypoints[i].position);
-            //}
-
-
-        }
 
         agent.velocity += steering;
     }
 
-    private void GoToNextWaypoint(bool isWaypointRandom)
+    private void GoToNextWaypoint()
     {
         if (agent.isOnOffMeshLink)
             return;
 
-        if (isWaypointRandom)
-        {
-            int randomIndex = Random.Range(0, waypoints.Length);
-            agent.SetDestination(waypoints[randomIndex].position);
-        }
-        else agent.SetDestination(waypoints[destPoint].position);
-
-
-        float distanceToPoint = (transform.position - waypoints[destPoint].position).magnitude;
+        agent.SetDestination(waypoints[destPoint].position);
 
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
@@ -136,7 +274,35 @@ public class RollingBallController : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Handles.color = Color.black;
-        Handles.DrawSolidDisc(transform.position, Vector3.up, 3f);
+        //Vector3 pos = transform.position;
+
+        //// Radius
+        //Gizmos.color = Color.yellow;
+        //Gizmos.DrawWireSphere(pos, detectionRadius);
+
+        //Handles.color = Color.black;
+        //Handles.DrawSolidDisc(transform.position, Vector3.up, 4f);
+
+        //// Forward line
+        //Gizmos.color = Color.green;
+        //Gizmos.DrawLine(
+        //    pos,
+        //    pos + transform.forward * detectionRadius
+        //);
+
+        //// Rear direction
+        //Gizmos.color = Color.red;
+        //Gizmos.DrawLine(
+        //    pos,
+        //    pos - transform.forward * detectionRadius
+        //);
+
+        //// Side plane (visual divider)
+        //Gizmos.color = Color.cyan;
+        //Gizmos.DrawLine(
+        //    pos + transform.right * detectionRadius,
+        //    pos - transform.right * detectionRadius
+        //);
     }
+
 }
