@@ -17,45 +17,47 @@ public class RollingBallController : MonoBehaviour
         ReturningToPatrol
     }
 
+    [Header("Movement")]
     [SerializeField] float rotationSpeed = 90f; // degrees per second
     [SerializeField] float jumpForce = 5f;
-    private float gravity = -9.8f;
+
+    // Physics-related movement members
     private float verticalVelocity;
+    private float gravity = -9.8f;
+    bool isJumping = false;
+    bool isGrounded = true;
+    float groundY;
+
+    [Header("Patrol")]
     [SerializeField] Transform[] waypoints;
     private int destPoint = 0;
 
-    bool isJumping = false;
-    float groundY;
-    float detectionRadius = 4f;
-    NavMeshAgent agent;
-
-    Transform visualMesh;
-    PlayerController player;
-
+    [Header("Flee Behavior")]
     [SerializeField] float fleeRadius = 3f;
     [SerializeField] float fleeMaxSpeed = 10f;
     [SerializeField] float fleeTimer = 5f;
     private float fleeTimerCounter = 0f;
+
+    [Header("Evade Behavior")]
     [SerializeField] float evadeWeight = 0.2f;
-    private bool isFleeing = false;
-
-    [SerializeField] private Vector3 currentVelocity;
-
-    Transform farthestWaypoint;
-    bool isGrounded = true;
-    
-    RTBState currentState = RTBState.Patrolling;
 
     private Vector3 tempVelocity;
     private Vector3 lastKnownPlayerLocation;
 
+    float detectionRadius = 4f; // Should be refactored to be editable same as the FOV. Usecase for this is currently confusing.
+
     [Header("Frontal Detection range")]
     [Range(0, 360)] public float fovAngle = 180f;
     public float Fov;
-    [SerializeField] float detectionRange;
 
     [Header("Debug")]
     [SerializeField] bool shouldBallBeStill;
+
+
+    NavMeshAgent agent;
+    Transform visualMesh;
+    PlayerController player;
+    RTBState currentState = RTBState.Patrolling;
 
     private void Start()
     {
@@ -64,91 +66,11 @@ public class RollingBallController : MonoBehaviour
         player = FindFirstObjectByType<PlayerController>();
     }
 
-    void StartJump()
-    {
-        isJumping = true;
-        isGrounded = false;
-
-        tempVelocity = agent.velocity;
-        agent.velocity = Vector3.zero;
-
-        agent.isStopped = true;
-        agent.updatePosition = false;
-        agent.updateRotation = false;
-
-        groundY = transform.position.y;
-        verticalVelocity = jumpForce;
-    }
-
-    void Land()
-    {
-        Vector3 pos = transform.position;
-        pos.y = groundY;
-        transform.position = pos;
-
-        agent.velocity = tempVelocity;
-        verticalVelocity = 0f;
-        isJumping = false;
-        isGrounded = true;
-
-        agent.Warp(transform.position);
-        agent.updatePosition = true;
-        agent.updateRotation = true;
-        agent.isStopped = false;
-    }
-
-
-    bool IsPlayerInRearHalfCircle()
-    {
-        Vector3 toPlayer = player.transform.position - transform.position;
-        toPlayer.y = 0f;
-
-        if (toPlayer.magnitude > detectionRadius)
-            return false;
-
-        float dot = Vector3.Dot(transform.forward, toPlayer.normalized);
-        return dot < 0f;
-    }
-
-
-    void Patrolling()
-    {
-        if (IsPlayerInRearHalfCircle() && !agent.isOnOffMeshLink)
-        {
-            Debug.Log("Was startled");
-            currentState = RTBState.Startled;
-            return;
-        }
-
-        GoToNextWaypoint();
-    }
-
-    void JumpScare()
-    {
-        if (!isJumping && isGrounded)
-            StartJump();
-
-        if (isJumping)
-        {
-            verticalVelocity += gravity * Time.deltaTime;
-
-            transform.position += Vector3.up * verticalVelocity * Time.deltaTime;
-
-            if (transform.position.y <= groundY)
-            {
-                Land();
-                currentState = RTBState.RunningAway;
-            }
-
-        }
-    }
-
     void Update()
     {
         if (CanSeePlayer())
             Debug.Log("Can see player");
 
-        currentVelocity = agent.velocity;
 
         float rollAmount = agent.velocity.magnitude * rotationSpeed * Time.deltaTime;
         visualMesh.Rotate(Vector3.right, rollAmount, Space.Self);
@@ -178,6 +100,39 @@ public class RollingBallController : MonoBehaviour
                 break;
         }
 
+    }
+
+    void JumpScare()
+    {
+        if (!isJumping && isGrounded)
+            StartJump();
+
+        if (isJumping)
+        {
+            verticalVelocity += gravity * Time.deltaTime;
+
+            transform.position += Vector3.up * verticalVelocity * Time.deltaTime;
+
+            if (transform.position.y <= groundY)
+            {
+                Land();
+                currentState = RTBState.RunningAway;
+            }
+
+        }
+    }
+
+    #region Patrol
+    void Patrolling()
+    {
+        if (IsPlayerInRearHalfCircle() && !agent.isOnOffMeshLink)
+        {
+            Debug.Log("Was startled");
+            currentState = RTBState.Startled;
+            return;
+        }
+
+        GoToNextWaypoint();
     }
 
     void ReturnToPatrol()
@@ -213,6 +168,34 @@ public class RollingBallController : MonoBehaviour
         }
     }
 
+    private void GoToNextWaypoint()
+    {
+        if (agent.isOnOffMeshLink)
+            return;
+
+        agent.SetDestination(waypoints[destPoint].position);
+
+        if (!agent.pathPending && agent.remainingDistance < 0.5f)
+        {
+            destPoint = (destPoint + 1) % waypoints.Length;
+        }
+    }
+
+    #endregion
+
+    #region Detection
+    bool IsPlayerInRearHalfCircle()
+    {
+        Vector3 toPlayer = player.transform.position - transform.position;
+        toPlayer.y = 0f;
+
+        if (toPlayer.magnitude > detectionRadius)
+            return false;
+
+        float dot = Vector3.Dot(transform.forward, toPlayer.normalized);
+        return dot < 0f;
+    }
+
     bool CanSeePlayer()
     {
         Collider[] targetsInFov = Physics.OverlapSphere(transform.position, Fov);
@@ -233,6 +216,11 @@ public class RollingBallController : MonoBehaviour
 
         return false;
     }
+
+    #endregion
+
+    #region Steering Behavior
+
 
     private void Evade()
     {
@@ -259,18 +247,45 @@ public class RollingBallController : MonoBehaviour
         agent.velocity += steering;
     }
 
-    private void GoToNextWaypoint()
+    #endregion
+
+    #region Aerial Functions
+
+
+    void StartJump()
     {
-        if (agent.isOnOffMeshLink)
-            return;
+        isJumping = true;
+        isGrounded = false;
 
-        agent.SetDestination(waypoints[destPoint].position);
+        tempVelocity = agent.velocity;
+        agent.velocity = Vector3.zero;
 
-        if (!agent.pathPending && agent.remainingDistance < 0.5f)
-        {
-            destPoint = (destPoint + 1) % waypoints.Length;
-        }
+        agent.isStopped = true;
+        agent.updatePosition = false;
+        agent.updateRotation = false;
+
+        groundY = transform.position.y;
+        verticalVelocity = jumpForce;
     }
+
+    void Land()
+    {
+        Vector3 pos = transform.position;
+        pos.y = groundY;
+        transform.position = pos;
+
+        agent.velocity = tempVelocity;
+        verticalVelocity = 0f;
+        isJumping = false;
+        isGrounded = true;
+
+        agent.Warp(transform.position);
+        agent.updatePosition = true;
+        agent.updateRotation = true;
+        agent.isStopped = false;
+    }
+
+    #endregion
 
     private void OnDrawGizmosSelected()
     {
