@@ -27,6 +27,7 @@ public partial class UpdateLosAction : Action
         {
             HasLineOfSight.Value = true;
             TimeSinceLastSeen.Value = 0f;
+            return Status.Running;
         }
         else
         {

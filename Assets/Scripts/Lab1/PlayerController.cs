@@ -15,6 +15,10 @@ public class PlayerController : MonoBehaviour
     Quaternion rotation;
 
     public Vector3 playerVelocity;
+
+    private bool applyForce;
+    private Vector3 knockBackForce;
+    private bool canMove = true;
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -39,7 +43,7 @@ public class PlayerController : MonoBehaviour
             isGrounded = false;
         }
     }
-    
+
     private void Update()
     {
         float x = Input.GetAxisRaw("Horizontal");
@@ -53,12 +57,37 @@ public class PlayerController : MonoBehaviour
         Vector3 moveDir = transform.forward * moveVal.y;
         Vector3 nextPos = rb.position + moveDir * moveSpeed * Time.deltaTime;
         playerVelocity = rb.linearVelocity;
-        rb.MovePosition(nextPos);
 
+        if (canMove)
+            rb.MovePosition(nextPos);
+
+
+        if (applyForce)
+        {
+            ApplyKnockback();
+        }
+    }
+
+    public void ApplyKnockback()
+    {
+        rb.AddForce(knockBackForce, ForceMode.Impulse);
+        applyForce = false;
+        canMove = false;
+    }
+
+    public void SetKnockback(Vector3 force)
+    {
+        applyForce = true;
+        knockBackForce = force;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Ground")) isGrounded = true;
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            canMove = true;
+            isGrounded = true;
+        }
+
     }
 }
