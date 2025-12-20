@@ -206,7 +206,7 @@ public class RollingBallController : MonoBehaviour
             {
                 float signedAngle = Vector3.Angle(transform.forward, c.transform.position - transform.position);
 
-                if (Math.Abs(signedAngle) < fovAngle / 2)
+                if (Mathf.Abs(signedAngle) < fovAngle / 2)
                 {
                     currentState = RTBState.RunningAway;
                     return true;

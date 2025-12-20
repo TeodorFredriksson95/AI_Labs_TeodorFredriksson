@@ -31,11 +31,9 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        Debug.Log("player jump pressed");
 
         if (context.performed && isGrounded)
         {
-            Debug.Log("entered jump");
 
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             isGrounded = false;
