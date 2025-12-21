@@ -1,5 +1,6 @@
 using System;
 using System.Transactions;
+using Unity.Behavior;
 using Unity.Collections;
 using Unity.VisualScripting;
 using UnityEditor;
@@ -9,6 +10,10 @@ using UnityEngine.Rendering;
 
 public class RollingBallController : MonoBehaviour
 {
+
+    [SerializeField] private BehaviorGraphAgent HelperAgent;
+    private RendezvousCoordinator coordinator;
+
     public enum RTBState
     {
         Patrolling,
@@ -18,7 +23,7 @@ public class RollingBallController : MonoBehaviour
     }
 
     [Header("Movement")]
-    [SerializeField] float rotationSpeed = 90f; // degrees per second
+    [SerializeField] float rotationSpeed = 90f;
     [SerializeField] float jumpForce = 5f;
 
     // Physics-related movement members
@@ -64,6 +69,7 @@ public class RollingBallController : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         visualMesh = transform.Find("Mesh");
         player = FindFirstObjectByType<PlayerController>();
+        coordinator = GetComponent<RendezvousCoordinator>();
     }
 
     void Update()
@@ -102,6 +108,19 @@ public class RollingBallController : MonoBehaviour
 
     }
 
+    #region Coordinate Rendezvous point
+    void WhenTRBMeetsRequirements()
+    {
+        coordinator.SetTRBReady();
+    }
+
+    public void MoveToLocation(Vector3 pos)
+    {
+        // TRB movement logic
+    }
+
+
+    #endregion
     void JumpScare()
     {
         if (!isJumping && isGrounded)

@@ -27,6 +27,7 @@ public partial class NavigateToRandomPatrolpointAction : Action
     protected override Status OnUpdate()
     {
         navAgent.SetDestination(randomPatrolpoint.transform.position);
+
         if (navAgent.pathPending || navAgent.remainingDistance > 0.1f)
         {
             return Status.Running;

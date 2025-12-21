@@ -1104,6 +1104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f3619a95319ebb4981287642b75aa7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  HelperAgent: {fileID: 0}
   rotationSpeed: 90
   jumpForce: 5
   waypoints:
@@ -1190,6 +1191,37 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!1 &903883251
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 903883252}
+  m_Layer: 0
+  m_Name: SafePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &903883252
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 903883251}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -37.5, y: 0, z: -44.6}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &940855483
 GameObject:
   m_ObjectHideFlags: 0
@@ -1465,11 +1497,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0038c16c34866b4f9e25c9c0dc0f7e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Graph: {fileID: 5162899430346471481, guid: 018f30483b6919a49825c2373f1c8f18, type: 2}
+  m_Graph: {fileID: -8297146530173636769, guid: 873ae1b578df39446a9d28102966b39b, type: 2}
   m_BlackboardVariableOverridesList:
   - rid: 9098826335978258699
-  - rid: 9098826406690029704
-  - rid: 9098826406690030508
+  - rid: 9098826433778942973
+  - rid: 9098826433778942972
+  - rid: 9098826433778942974
   m_OriginalGraph: {fileID: 0}
   m_IsInitialised: 0
   m_IsStarted: 0
@@ -1484,26 +1517,34 @@ MonoBehaviour:
           m_Value1: 0
         Name: Self
         m_Value: {fileID: 1099714400}
-    - rid: 9098826406690029704
+    - rid: 9098826433778942972
+      type: {class: 'BlackboardVariable`1[[UnityEngine.GameObject, UnityEngine.CoreModule]]', ns: Unity.Behavior, asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 5990340164676360750
+          m_Value1: 3017008046049697494
+        Name: Enemy
+        m_Value: {fileID: 1367324250}
+    - rid: 9098826433778942973
       type: {class: 'BlackboardVariable`1[[System.Collections.Generic.List`1[[UnityEngine.GameObject, UnityEngine.CoreModule]], mscorlib]]', ns: Unity.Behavior, asm: Unity.Behavior}
       data:
         GUID:
-          m_Value0: 7019458210152093969
-          m_Value1: 10405357467729723053
+          m_Value0: 12419045742424373528
+          m_Value1: 12875499211235593225
         Name: PatrolPoints
         m_Value:
         - {fileID: 1580573395}
         - {fileID: 1300474040}
         - {fileID: 1016855774}
         - {fileID: 1896288730}
-    - rid: 9098826406690030508
-      type: {class: 'BlackboardVariable`1[[UnityEngine.GameObject, UnityEngine.CoreModule]]', ns: Unity.Behavior, asm: Unity.Behavior}
+    - rid: 9098826433778942974
+      type: {class: 'BlackboardVariable`1[[UnityEngine.Transform, UnityEngine.CoreModule]]', ns: Unity.Behavior, asm: Unity.Behavior}
       data:
         GUID:
-          m_Value0: 13713230133702820343
-          m_Value1: 2774292553446154948
-        Name: Enemy
-        m_Value: {fileID: 1367324250}
+          m_Value0: 10012262559374258060
+          m_Value1: 3943182261572860372
+        Name: CommonSafepoint
+        m_Value: {fileID: 903883252}
 --- !u!4 &1099714405
 Transform:
   m_ObjectHideFlags: 0
@@ -2025,7 +2066,7 @@ Transform:
   m_GameObject: {fileID: 1580573395}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -72.66, y: 0, z: -10.69}
+  m_LocalPosition: {x: -72.69, y: 0, z: -14.84}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2664,3 +2705,4 @@ SceneRoots:
   - {fileID: 1099714405}
   - {fileID: 1815385690}
   - {fileID: 746713416}
+  - {fileID: 903883252}
