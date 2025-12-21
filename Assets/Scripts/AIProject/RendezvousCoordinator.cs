@@ -1,30 +1,90 @@
 using System;
+using Unity.Behavior;
 using UnityEngine;
+using UnityEngine.InputSystem.LowLevel;
+using static UnityEngine.Rendering.DebugUI;
 
 public class RendezvousCoordinator : MonoBehaviour
 {
+    [SerializeField] private BehaviorGraphAgent m_Agent;
+    private BlackboardVariable<StateEventChannel> m_stateEventChannelBBV;
+    private BlackboardVariable<States> m_stateBBV;
+
+    [SerializeField] RollingBallController trb;
     public bool HelperReady { get; private set; }
     public bool TRBReady { get; private set; }
 
     public bool BothReady => HelperReady && TRBReady;
 
-    public event Action OnBothReady;
+    public event System.Action OnBothReady;
 
-    public void SetHelperReady()
+    private void OnEnable()
     {
-        HelperReady = true;
+        if (m_Agent.GetVariable("StateEventChannel", out m_stateEventChannelBBV))
+            m_stateEventChannelBBV.Value.Event += OnStateEvent;
+
+        if (m_Agent.GetVariable("StateToReact", out m_stateBBV))
+            m_stateBBV.OnValueChanged += OnStateValueChanged;
+
+    }
+
+    private void OnDisable()
+    {
+        if (m_stateEventChannelBBV != null)
+            m_stateEventChannelBBV.Value.Event -= OnStateEvent;
+        if (m_stateBBV != null)
+            m_stateBBV.OnValueChanged -= OnStateValueChanged;
+    }
+
+    private void Update()
+    {
+        // your custom logic
+
+        // Send event to the event channel of the referenced agent.
+        // Only this instance of agent will receive it (except if the BlackboardVariable is 'Shared').
+        //m_stateEventChannelBBV.Value.SendEventMessage(States.Alert);
+
+        if (BothReady)
+        {
+            Debug.Log("Both agents are ready to chill");
+            m_Agent.SetVariableValue("ShouldMoveToSafepoint", true); // Need to set the gatekeeping boolean in H:A's behavior graph
+                                                                     // so it can move to the safepoint.
+            
+            trb.CurrentState = TRBState.Chilling; // Set the set of TRB to allow proper flow of TRB FSM.
+        }
+    }
+
+    private void OnStateEvent(States value)
+    {
+        // React to event
+        Debug.Log("OnStateEvent value: " + value);
+        IsHelperReady(isReady: true);
+        IsTRBReady(isReady: true);
+    }
+
+    private void OnStateValueChanged()
+    {
+        // React to state change
+        Debug.Log("OnStateValueChanged. State is: " + m_stateBBV);
+
+        bool isReady = m_stateBBV.Value == States.GoToChillPoint ? true : false;
+    }
+
+    public void IsHelperReady(bool isReady)
+    {
+        HelperReady = isReady;
         Check();
     }
 
-    public void SetTRBReady()
+    public void IsTRBReady(bool isReady)
     {
-        TRBReady = true;
+        TRBReady = isReady;
         Check();
     }
 
     private void Check()
     {
         if (BothReady)
-            OnBothReady?.Invoke();
+            m_Agent.SetVariableValue("ShouldMoveToSafePoint", true);
     }
 }

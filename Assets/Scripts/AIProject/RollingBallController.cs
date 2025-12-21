@@ -8,19 +8,20 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Rendering;
 
+
+public enum TRBState
+{
+    Patrolling,
+    Startled,
+    RunningAway,
+    ReturningToPatrol,
+    Chilling
+}
+
 public class RollingBallController : MonoBehaviour
 {
+    [SerializeField] private RendezvousCoordinator coordinator;
 
-    [SerializeField] private BehaviorGraphAgent HelperAgent;
-    private RendezvousCoordinator coordinator;
-
-    public enum RTBState
-    {
-        Patrolling,
-        Startled,
-        RunningAway,
-        ReturningToPatrol
-    }
 
     [Header("Movement")]
     [SerializeField] float rotationSpeed = 90f;
@@ -36,6 +37,11 @@ public class RollingBallController : MonoBehaviour
     [Header("Patrol")]
     [SerializeField] Transform[] waypoints;
     private int destPoint = 0;
+    [SerializeField] private float readyToChillTime = 10f;
+    private float chillTimeCounter;
+
+    [Header("Common Safepoint")]
+    [SerializeField] Transform safetyPoint;
 
     [Header("Flee Behavior")]
     [SerializeField] float fleeRadius = 3f;
@@ -62,14 +68,24 @@ public class RollingBallController : MonoBehaviour
     NavMeshAgent agent;
     Transform visualMesh;
     PlayerController player;
-    RTBState currentState = RTBState.Patrolling;
+    TRBState currentState = TRBState.Patrolling;
+
+
+    // Jump related stuff
+    private float jumpTimer = 3f;
+    private float jumpTimerCounter;
+
+    public TRBState CurrentState
+    {
+        get { return currentState; }
+        set { currentState = value; }
+    }
 
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         visualMesh = transform.Find("Mesh");
         player = FindFirstObjectByType<PlayerController>();
-        coordinator = GetComponent<RendezvousCoordinator>();
     }
 
     void Update()
@@ -78,18 +94,23 @@ public class RollingBallController : MonoBehaviour
             Debug.Log("Can see player");
 
 
+        if (CanTRBTransitionToChill())
+        {
+            coordinator.IsTRBReady(isReady: true);
+        }
+
         float rollAmount = agent.velocity.magnitude * rotationSpeed * Time.deltaTime;
         visualMesh.Rotate(Vector3.right, rollAmount, Space.Self);
 
         switch (currentState)
         {
-            case RTBState.Patrolling:
+            case TRBState.Patrolling:
                 Patrolling();
                 break;
-            case RTBState.Startled:
+            case TRBState.Startled:
                 JumpScare();
                 break;
-            case RTBState.RunningAway:
+            case TRBState.RunningAway:
                 if (fleeTimerCounter < fleeTimer)
                 {
                     fleeTimerCounter += Time.deltaTime;
@@ -101,22 +122,77 @@ public class RollingBallController : MonoBehaviour
                     fleeTimerCounter = 0f;
                 }
                 break;
-            case RTBState.ReturningToPatrol:
+            case TRBState.ReturningToPatrol:
                 ReturnToPatrol();
+                break;
+            case TRBState.Chilling:
+                MoveToSafePoint();
                 break;
         }
 
     }
 
+
+
+
     #region Coordinate Rendezvous point
+
+    private bool CanTRBTransitionToChill()
+    {
+        if (currentState != TRBState.Patrolling)
+        {
+            chillTimeCounter = 0f;
+            return false;
+        }
+
+        if (chillTimeCounter < readyToChillTime)
+        {
+            chillTimeCounter += Time.deltaTime;
+            return false;
+        }
+
+        return true;
+    }
     void WhenTRBMeetsRequirements()
     {
-        coordinator.SetTRBReady();
+        coordinator.IsTRBReady(isReady: true);
     }
 
-    public void MoveToLocation(Vector3 pos)
+    public void MoveToSafePoint()
     {
-        // TRB movement logic
+        jumpTimerCounter += Time.deltaTime;
+
+        agent.stoppingDistance = 10f;
+
+        if (agent.remainingDistance > 5f)
+            agent.SetDestination(safetyPoint.position);
+
+        if (agent.remainingDistance < 5f && jumpTimerCounter >= jumpTimer)
+        {
+            if (!isJumping && isGrounded)
+                StartJump();
+
+            if (isJumping)
+            {
+                verticalVelocity += gravity * Time.deltaTime;
+
+                transform.position += Vector3.up * verticalVelocity * Time.deltaTime;
+
+                if (transform.position.y <= groundY)
+                {
+                    Land();
+                    currentState = TRBState.RunningAway;
+                    jumpTimerCounter = 0f;
+                }
+
+            }
+        }
+
+    }
+
+    private void DoSomethingDuringBreak()
+    {
+        // Do something during break?
     }
 
 
@@ -135,7 +211,7 @@ public class RollingBallController : MonoBehaviour
             if (transform.position.y <= groundY)
             {
                 Land();
-                currentState = RTBState.RunningAway;
+                currentState = TRBState.RunningAway;
             }
 
         }
@@ -147,7 +223,7 @@ public class RollingBallController : MonoBehaviour
         if (IsPlayerInRearHalfCircle() && !agent.isOnOffMeshLink)
         {
             Debug.Log("Was startled");
-            currentState = RTBState.Startled;
+            currentState = TRBState.Startled;
             return;
         }
 
@@ -157,7 +233,7 @@ public class RollingBallController : MonoBehaviour
     void ReturnToPatrol()
     {
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
-            currentState = RTBState.Patrolling;
+            currentState = TRBState.Patrolling;
     }
 
     void SetSafePatrolPoint()
@@ -173,7 +249,7 @@ public class RollingBallController : MonoBehaviour
             {
                 agent.SetDestination(waypoints[i].position);
                 destPoint = Array.IndexOf(waypoints, waypoints[i]);
-                currentState = RTBState.ReturningToPatrol;
+                currentState = TRBState.ReturningToPatrol;
                 return;
             }
         }
@@ -183,7 +259,7 @@ public class RollingBallController : MonoBehaviour
             int rndIdx = UnityEngine.Random.Range(0, waypoints.Length);
             destPoint = rndIdx;
             agent.SetDestination(waypoints[destPoint].position);
-            currentState = RTBState.ReturningToPatrol;
+            currentState = TRBState.ReturningToPatrol;
         }
     }
 
@@ -227,7 +303,7 @@ public class RollingBallController : MonoBehaviour
 
                 if (Mathf.Abs(signedAngle) < fovAngle / 2)
                 {
-                    currentState = RTBState.RunningAway;
+                    currentState = TRBState.RunningAway;
                     return true;
                 }
             }

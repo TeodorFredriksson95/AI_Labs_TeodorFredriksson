@@ -6,5 +6,7 @@ public enum States
 {
 	Patrol,
 	Chase,
-	ReturnToPatrol
+	ReturnToPatrol,
+	Alert,
+	GoToChillPoint
 }
