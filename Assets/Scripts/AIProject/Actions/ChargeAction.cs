@@ -12,6 +12,7 @@ public partial class ChargeAction : Action
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
     [SerializeReference] public BlackboardVariable<GameObject> Target;
     [SerializeReference] public BlackboardVariable<bool> IsPlayerTagged;
+    [SerializeReference] public BlackboardVariable<bool> ShouldAbort;
 
 
     private NavMeshAgent navAgent;
@@ -24,6 +25,8 @@ public partial class ChargeAction : Action
         player = Target.Value.transform;
         prb = Target.Value.GetComponent<Rigidbody>();
         pc = Target.Value.GetComponent<PlayerController>();
+
+        ShouldAbort.Value = true;
         return Status.Running;
     }
 

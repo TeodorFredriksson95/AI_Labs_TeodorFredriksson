@@ -13,6 +13,7 @@ public partial class OnBreakAction : Action
 {
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
     [SerializeReference] public BlackboardVariable<float> Duration;
+    [SerializeReference] private BlackboardVariable<TrbDetectedEnemy> TRBDetectedEnemyChannel;
 
     private NPCJumpController jumpController;
     private NavMeshAgent navAgent;
@@ -21,21 +22,30 @@ public partial class OnBreakAction : Action
     private float jumpTimerCounter = 0f;
     private float jumpTimer = 3f;
     private float durationCounter;
+
+    private bool shouldAbort;
+
     protected override Status OnStart()
     {
         durationCounter = 0f;
         navAgent = Agent.Value.GetComponent<NavMeshAgent>();
         npcTransform = Agent.Value.GetComponent<Transform>();
         jumpController = new NPCJumpController(navAgent, npcTransform, NPCUtility.gravity);
+
+
         return Status.Running;
     }
 
     protected override Status OnUpdate()
     {
-        if (durationCounter >= Duration.Value)
+        durationCounter += Time.deltaTime;
+
+        if (shouldAbort)    
+            return Status.Failure;
+
+        if (durationCounter >= Duration.Value && jumpController.isGrounded)
             return Status.Success;
 
-        durationCounter += Time.deltaTime;
 
         if (jumpTimerCounter >= jumpTimer)
         {
@@ -63,6 +73,9 @@ public partial class OnBreakAction : Action
         jumpTimerCounter += Time.deltaTime;
         return Status.Running;
     }
+
+
+
 
 }
 

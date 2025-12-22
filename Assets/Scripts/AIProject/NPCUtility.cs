@@ -28,6 +28,5 @@ namespace Assets.Scripts.AIProject
             return false;
         }
 
-
     }
 }

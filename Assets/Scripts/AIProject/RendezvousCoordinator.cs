@@ -10,6 +10,7 @@ public class RendezvousCoordinator : MonoBehaviour
     private BlackboardVariable<HelperWannaChillEvent> HelperWannaChillChannel;
     private BlackboardVariable<TrbWannaChillEvent> TRBWannaChillChannel;
     private BlackboardVariable<HelperInterruptedChannel> HelperInterruptedChannel;
+    private BlackboardVariable<bool> IsHelperReadyToChill;
 
     private BlackboardVariable<States> m_stateBBV;
 
@@ -17,7 +18,7 @@ public class RendezvousCoordinator : MonoBehaviour
     public bool HelperReady { get; private set; }
     public bool TRBReady { get; private set; }
 
-    public bool BothReady => HelperReady && TRBReady;
+    public bool BothReady => IsHelperReadyToChill.Value && TRBReady;
 
     public event System.Action OnBothReady;
 
@@ -31,6 +32,8 @@ public class RendezvousCoordinator : MonoBehaviour
 
         if (m_Agent.GetVariable("HelperInterruptedEvent", out HelperInterruptedChannel))
             HelperInterruptedChannel.Value.Event += OnHelperInterrupted;
+
+        m_Agent.GetVariable("IsHelperReadyToChill", out IsHelperReadyToChill);
 
     }
 
@@ -61,17 +64,21 @@ public class RendezvousCoordinator : MonoBehaviour
 
     private void OnHelperInterrupted()
     {
+        //TRBReady = false;
+        IsHelperReadyToChill.Value = false;
         trb.BreakIsOver();
     }
 
     private void OnHelperWannaChillEvent()
     {
-        if (trb.CanTRBTransitionToChill())
-        {
-            trb.GoOnBreak();
-            //TRBWannaChillChannel.Value.SendEventMessage();
-            Debug.Log("Helper goes on break");
-        }
+        //HelperReady = true;
+        IsHelperReadyToChill.Value = true;
+        CheckReadyStatus();
+        //if (trb.CanTRBTransitionToChill())
+        //{
+        //    trb.GoOnBreak();
+        //    Debug.Log("Helper goes on break");
+        //}
     }
 
     public void IsHelperReady(bool isReady)
@@ -90,13 +97,19 @@ public class RendezvousCoordinator : MonoBehaviour
 
     public void IsTRBReady(bool isReady)
     {
-        if (isReady)
-            TRBReady = true;
-        else
+        TRBReady = isReady;
+
+        CheckReadyStatus();
+    }
+
+    void CheckReadyStatus()
+    {
+        if (BothReady)
         {
-            TRBReady = false;
-            trb.helperAgentState = States.Patrol; // We need to set this to anything other than GoToChillPoint, to gatekeep TRBs FSM.
-            trb.CurrentState = TRBState.Patrolling;
+            trb.GoOnBreak();
+            m_Agent.SetVariableValue("ShouldMoveToSafepoint", true); // Need to set the gatekeeping boolean in H:A's behavior graph
+            TRBWannaChillChannel.Value.SendEventMessage();
+            Debug.Log("asgag");
         }
 
     }

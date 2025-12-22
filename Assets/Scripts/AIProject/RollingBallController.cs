@@ -25,6 +25,8 @@ public class RollingBallController : MonoBehaviour
     [SerializeField] private BehaviorGraphAgent behaviorAgent;
     [SerializeField] private RendezvousCoordinator coordinator;
     private BlackboardVariable<TrbWannaChillEvent> TRBWannaChillChannel;
+    private BlackboardVariable<TrbDetectedEnemy> TRBDetectedEnemyChannel;
+    private BlackboardVariable<bool> ShouldAbort;
 
     // Helper agent state reference
     public States helperAgentState;
@@ -99,6 +101,8 @@ public class RollingBallController : MonoBehaviour
         visualMesh = transform.Find("Mesh");
         player = FindFirstObjectByType<PlayerController>();
         behaviorAgent.GetVariable("TRBChillEvent", out TRBWannaChillChannel);
+        behaviorAgent.GetVariable("TRBDetectsEnemy", out TRBDetectedEnemyChannel);
+        behaviorAgent.GetVariable("ShouldAbort", out ShouldAbort);
 
         breakTimeCooldownCounter = breakTimeCooldown; // If we dont initialize the counter to be = to the cooldown,
                                                       // the ability is considered to be ON cooldown at the start of the game.
@@ -160,8 +164,11 @@ public class RollingBallController : MonoBehaviour
 
     private void DoesTRBWannaChill()
     {
-        if (chillTimeCounter >= readyToChillTime && currentState == TRBState.Patrolling)
-            TRBWannaChillChannel.Value.SendEventMessage();
+        if (CanTRBTransitionToChill())
+            coordinator.IsTRBReady(true);
+        else
+            coordinator.IsTRBReady(false);
+            //TRBWannaChillChannel.Value.SendEventMessage();
 
     }
 
@@ -176,7 +183,7 @@ public class RollingBallController : MonoBehaviour
         if (isBreakOnCooldown)
             return false;
 
-        if (currentState != TRBState.Patrolling)
+        if (currentState != TRBState.Patrolling || currentState == TRBState.Chilling)
         {
             return false;
         }
@@ -192,7 +199,6 @@ public class RollingBallController : MonoBehaviour
 
     public void MoveToSafePoint()
     {
-        Debug.Log("TRB goes on break");
 
         jumpTimerCounter += Time.deltaTime;
 
@@ -206,7 +212,6 @@ public class RollingBallController : MonoBehaviour
             {
                 if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
                 {
-                    Debug.Log("Agent arrived at safe point");
                     isOnBreak = true;
                 }
             }
@@ -302,6 +307,8 @@ public class RollingBallController : MonoBehaviour
 
     void ReturnToPatrol()
     {
+        agent.stoppingDistance = 0;
+
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
             currentState = TRBState.Patrolling;
     }
@@ -363,6 +370,11 @@ public class RollingBallController : MonoBehaviour
 
     bool CanSeePlayer()
     {
+        // Need to gatekeep aerial activity, otherwise the TRB risks trying to trigger the RunAway protocol while mid-air, which
+        // will clash with nav agent velocity.
+        if (isJumping)
+            return false;
+
         Collider[] targetsInFov = Physics.OverlapSphere(transform.position, Fov);
 
         foreach (Collider c in targetsInFov)
@@ -373,6 +385,9 @@ public class RollingBallController : MonoBehaviour
 
                 if (Mathf.Abs(signedAngle) < fovAngle / 2)
                 {
+                    TRBDetectedEnemyChannel.Value.SendEventMessage(c.gameObject);
+                    ShouldAbort.Value = true;
+                    Debug.Log("should abort:  " + ShouldAbort.Value);
                     currentState = TRBState.RunningAway;
                     return true;
                 }

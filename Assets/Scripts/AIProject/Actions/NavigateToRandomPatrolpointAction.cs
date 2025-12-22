@@ -28,11 +28,17 @@ public partial class NavigateToRandomPatrolpointAction : Action
     {
         navAgent.SetDestination(randomPatrolpoint.transform.position);
 
-        if (navAgent.pathPending || navAgent.remainingDistance > 0.001f)
+
+        if (!navAgent.pathPending && navAgent.remainingDistance <= navAgent.stoppingDistance)
         {
-            return Status.Running;
+            if (!navAgent.hasPath || navAgent.velocity.sqrMagnitude == 0f)
+            {
+                Debug.Log("Agent arrived at safe point");
+                return Status.Success;
+            }
         }
-        return Status.Success;
+
+        return Status.Running;
     }
 
     protected override void OnEnd()
