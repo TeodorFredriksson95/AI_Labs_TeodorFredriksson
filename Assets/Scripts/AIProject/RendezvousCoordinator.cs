@@ -7,7 +7,6 @@ using static UnityEngine.Rendering.DebugUI;
 public class RendezvousCoordinator : MonoBehaviour
 {
     [SerializeField] private BehaviorGraphAgent m_Agent;
-    private BlackboardVariable<StateEventChannel> m_stateEventChannelBBV;
     private BlackboardVariable<HelperWannaChillEvent> HelperWannaChillChannel;
     private BlackboardVariable<TrbWannaChillEvent> TRBWannaChillChannel;
     private BlackboardVariable<HelperInterruptedChannel> HelperInterruptedChannel;
@@ -24,11 +23,6 @@ public class RendezvousCoordinator : MonoBehaviour
 
     private void OnEnable()
     {
-        if (m_Agent.GetVariable("StateEventChannel", out m_stateEventChannelBBV))
-            m_stateEventChannelBBV.Value.Event += OnStateEvent;
-
-        if (m_Agent.GetVariable("State", out m_stateBBV))
-            m_stateBBV.OnValueChanged += OnStateValueChanged;
 
         if (m_Agent.GetVariable("HelperChillEvent", out HelperWannaChillChannel))
             HelperWannaChillChannel.Value.Event += OnHelperWannaChillEvent;
@@ -42,10 +36,6 @@ public class RendezvousCoordinator : MonoBehaviour
 
     private void OnDisable()
     {
-        if (m_stateEventChannelBBV != null)
-            m_stateEventChannelBBV.Value.Event -= OnStateEvent;
-        if (m_stateBBV != null)
-            m_stateBBV.OnValueChanged -= OnStateValueChanged;
         if (HelperWannaChillChannel != null)
             HelperWannaChillChannel.Value.Event -= OnHelperWannaChillEvent;
     }
@@ -84,49 +74,6 @@ public class RendezvousCoordinator : MonoBehaviour
         }
     }
 
-    private void OnStateEvent(States value)
-    {
-        //TRBReadyChannel.Value.SendEventMessage(States.Patrol);
-
-
-        //// React to event
-        //Debug.Log("OnStateEvent value: " + value);
-
-        //// State Event is only sent *if* the Helper agent is ready to go to chill point.
-        //// If check is redundant, but in case logic ever changes
-        //if (value == States.GoToChillPoint)
-        //    IsHelperReady(isReady: true);
-        //else
-        //    IsHelperReady(isReady: false);
-    }
-
-
-    private void OnStateValueChanged()
-    {
-        //if (m_stateBBV.Value == States.GoToChillPoint)
-        //{
-        //    trb.helperAgentState = States.GoToChillPoint;
-        //    // Check TRB if its ready. assign a local member the boolean value. use it in update check.
-        //    TRBReady = trb.CanTRBTransitionToChill();
-        //    IsHelperReady(isReady: true);
-        //    m_stateEventChannelBBV.Value.SendEventMessage(States.Alert);
-
-        //    Check();
-        //}
-        //else
-        //{
-        //    trb.helperAgentState = States.Patrol;
-        //    IsHelperReady(isReady: false);
-        //}
-
-        //// React to state change
-        //Debug.Log("OnStateValueChanged. State is: " + m_stateBBV);
-
-        ////if (m_stateBBV.Value != States.GoToChillPoint)
-        ////    IsTRBReady(false);
-
-    }
-
     public void IsHelperReady(bool isReady)
     {
         if (isReady)
@@ -152,13 +99,5 @@ public class RendezvousCoordinator : MonoBehaviour
             trb.CurrentState = TRBState.Patrolling;
         }
 
-    }
-
-    private void Check()
-    {
-        if (BothReady)
-            m_stateEventChannelBBV.Value.SendEventMessage(States.Alert);
-
-        //m_Agent.SetVariableValue("ShouldMoveToSafePoint", true);
     }
 }

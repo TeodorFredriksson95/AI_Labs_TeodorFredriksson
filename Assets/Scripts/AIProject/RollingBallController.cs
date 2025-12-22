@@ -174,7 +174,6 @@ public class RollingBallController : MonoBehaviour
 
     public void GoOnBreak()
     {
-        isOnBreak = true;
         currentState = TRBState.Chilling;
     }
 
@@ -209,6 +208,18 @@ public class RollingBallController : MonoBehaviour
         agent.stoppingDistance = 10f;
 
         agent.SetDestination(safetyPoint.position);
+
+        if (!agent.pathPending)
+        {
+            if (agent.remainingDistance <= agent.stoppingDistance)
+            {
+                if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
+                {
+                    Debug.Log("Agent arrived at safe point");
+                    isOnBreak = true;
+                }
+            }
+        }
 
         if (!agent.pathPending && agent.remainingDistance < 5f && jumpTimerCounter >= jumpTimer)
         {
