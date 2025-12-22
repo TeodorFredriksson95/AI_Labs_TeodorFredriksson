@@ -37,8 +37,7 @@ public partial class MoveToTransformAction : Action
         navAgent.SetDestination(safePoint.position);
 
 
-
-        if (navAgent.remainingDistance <= navAgent.stoppingDistance)
+        if (!navAgent.pathPending || navAgent.remainingDistance <= navAgent.stoppingDistance)
         {
             if (!navAgent.hasPath || navAgent.velocity.sqrMagnitude == 0f)
             {
@@ -47,18 +46,10 @@ public partial class MoveToTransformAction : Action
             }
         }
 
-        //if (navAgent.pathPending || navAgent.remainingDistance > 2f)
-        //    return Status.Running;
 
         Debug.Log("Agent reached safepoint");
         return Status.Running;
     }
-
-    //protected override void OnEnd()
-    //{
-    //    TRBDetectedEnemyChannel.Value.Event -= OnTRBDetectedEnemy;
-    //}
-
 
     private void OnTRBDetectedEnemy(GameObject _)
     {
