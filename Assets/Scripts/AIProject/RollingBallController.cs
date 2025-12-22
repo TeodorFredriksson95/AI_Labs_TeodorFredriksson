@@ -100,6 +100,10 @@ public class RollingBallController : MonoBehaviour
         player = FindFirstObjectByType<PlayerController>();
         behaviorAgent.GetVariable("TRBChillEvent", out TRBWannaChillChannel);
 
+        breakTimeCooldownCounter = breakTimeCooldown; // If we dont initialize the counter to be = to the cooldown,
+                                                      // the ability is considered to be ON cooldown at the start of the game.
+                                                      // It causes weird timings with the Helper NPC otherwise.
+
     }
 
     void Update()
@@ -198,6 +202,7 @@ public class RollingBallController : MonoBehaviour
 
     public void MoveToSafePoint()
     {
+        Debug.Log("TRB goes on break");
 
         jumpTimerCounter += Time.deltaTime;
 

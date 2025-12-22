@@ -28,7 +28,7 @@ public partial class NavigateToRandomPatrolpointAction : Action
     {
         navAgent.SetDestination(randomPatrolpoint.transform.position);
 
-        if (navAgent.pathPending || navAgent.remainingDistance > 0.1f)
+        if (navAgent.pathPending || navAgent.remainingDistance > 0.001f)
         {
             return Status.Running;
         }

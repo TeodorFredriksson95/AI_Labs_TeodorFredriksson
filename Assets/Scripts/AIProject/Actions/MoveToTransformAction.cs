@@ -21,13 +21,14 @@ public partial class MoveToTransformAction : Action
         navAgent.autoBraking = true;
 
         navAgent.speed = 5f;
-        navAgent.SetDestination(safePoint.position);
 
         return Status.Running;
     }
 
     protected override Status OnUpdate()
     {
+        navAgent.SetDestination(safePoint.position);
+
         if (navAgent.pathPending || navAgent.remainingDistance > 1)
             return Status.Running;
 

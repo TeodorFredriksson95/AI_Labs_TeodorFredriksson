@@ -79,7 +79,8 @@ public class RendezvousCoordinator : MonoBehaviour
         if (trb.CanTRBTransitionToChill())
         {
             trb.GoOnBreak();
-            TRBWannaChillChannel.Value.SendEventMessage();
+            //TRBWannaChillChannel.Value.SendEventMessage();
+            Debug.Log("Helper goes on break");
         }
     }
 
