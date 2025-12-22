@@ -19,12 +19,18 @@ public class PlayerController : MonoBehaviour
     private bool applyForce;
     private Vector3 knockBackForce;
     private bool canMove = true;
+
+    [SerializeField] RollingBallController rbc;
+
+    private float catchBallCooldownTimer = 10f;
+    private float catchBallCooldownCounter = 0f;
+    private bool canCatchBall => catchBallCooldownCounter <= 0;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
 
-        //Cursor.lockState = CursorLockMode.Locked;
     }
 
     public void Move(InputAction.CallbackContext value)
@@ -50,6 +56,8 @@ public class PlayerController : MonoBehaviour
         Quaternion playerRotation = Quaternion.Euler(Vector3.up * (x * 150 * Time.fixedDeltaTime));
         transform.Rotate(0, x * 150 * Time.deltaTime, 0);
 
+        DidPlayerCatchBall();
+        
     }
 
     private void FixedUpdate()
@@ -89,5 +97,31 @@ public class PlayerController : MonoBehaviour
             isGrounded = true;
         }
 
+    }
+
+    private bool DidPlayerCatchBall()
+    {
+        if (canCatchBall)
+        {
+            if (IsBallCaught())
+            {
+                RuntimeUI.Instance.UpdateScoreLabel();
+                catchBallCooldownCounter = catchBallCooldownTimer;
+                return true;
+            }
+        }
+
+        catchBallCooldownCounter -= Time.deltaTime;
+        return false;
+    }
+
+    private bool IsBallCaught()
+    {
+
+        float distance = Vector3.Distance(transform.position, rbc.transform.position);
+        if (distance < 2f)
+            return true;
+
+        return false;
     }
 }

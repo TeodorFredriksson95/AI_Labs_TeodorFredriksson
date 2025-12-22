@@ -32,8 +32,11 @@ public partial class ChargeAction : Action
 
     protected override Status OnUpdate()
     {
-        if (IsPlayerTagged.Value) return Status.Success;
-
+        if (IsPlayerTagged.Value)
+        {
+            RuntimeUI.Instance.UpdateDeathsLabel();
+            return Status.Success;
+        }
         Vector3 direction = player.transform.position - Agent.Value.transform.position;
         float distance = direction.magnitude;
         navAgent.speed = 10f;
