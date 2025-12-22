@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 
 public enum TRBState
@@ -20,33 +21,44 @@ public enum TRBState
 
 public class RollingBallController : MonoBehaviour
 {
-    [SerializeField] private RendezvousCoordinator coordinator;
 
+    [SerializeField] private BehaviorGraphAgent behaviorAgent;
+    [SerializeField] private RendezvousCoordinator coordinator;
+    private BlackboardVariable<TrbWannaChillEvent> TRBWannaChillChannel;
+
+    // Helper agent state reference
+    public States helperAgentState;
 
     [Header("Movement")]
-    [SerializeField] float rotationSpeed = 90f;
-    [SerializeField] float jumpForce = 5f;
+    [SerializeField] private float rotationSpeed = 90f;
+    [SerializeField] private float jumpForce = 5f;
 
     // Physics-related movement members
     private float verticalVelocity;
     private float gravity = -9.8f;
-    bool isJumping = false;
-    bool isGrounded = true;
-    float groundY;
+    private bool isJumping = false;
+    private bool isGrounded = true;
+    private float groundY;
 
     [Header("Patrol")]
     [SerializeField] Transform[] waypoints;
     private int destPoint = 0;
-    [SerializeField] private float readyToChillTime = 10f;
+    [SerializeField] private float readyToChillTime = 5f;
     private float chillTimeCounter;
 
     [Header("Common Safepoint")]
-    [SerializeField] Transform safetyPoint;
+    [SerializeField] private Transform safetyPoint;
+    [SerializeField] private float breakTimeDuration;
+    private float breakTimeCounter;
+    [SerializeField] private float breakTimeCooldown = 10f;
+    private float breakTimeCooldownCounter;
+    private bool isBreakOnCooldown => breakTimeCooldownCounter < breakTimeCooldown;
+    private bool isOnBreak;
 
     [Header("Flee Behavior")]
-    [SerializeField] float fleeRadius = 3f;
-    [SerializeField] float fleeMaxSpeed = 10f;
-    [SerializeField] float fleeTimer = 5f;
+    [SerializeField] private float fleeRadius = 3f;
+    [SerializeField] private float fleeMaxSpeed = 10f;
+    [SerializeField] private float fleeTimer = 5f;
     private float fleeTimerCounter = 0f;
 
     [Header("Evade Behavior")]
@@ -55,20 +67,20 @@ public class RollingBallController : MonoBehaviour
     private Vector3 tempVelocity;
     private Vector3 lastKnownPlayerLocation;
 
-    float detectionRadius = 4f; // Should be refactored to be editable same as the FOV. Usecase for this is currently confusing.
+    private float detectionRadius = 4f; // Should be refactored to be editable same as the FOV. Usecase for this is currently confusing.
 
     [Header("Frontal Detection range")]
     [Range(0, 360)] public float fovAngle = 180f;
     public float Fov;
 
     [Header("Debug")]
-    [SerializeField] bool shouldBallBeStill;
+    [SerializeField] private bool shouldBallBeStill;
+    [SerializeField] private TRBState currentState = TRBState.Patrolling;
 
 
-    NavMeshAgent agent;
-    Transform visualMesh;
-    PlayerController player;
-    TRBState currentState = TRBState.Patrolling;
+    private NavMeshAgent agent;
+    private Transform visualMesh;
+    private PlayerController player;
 
 
     // Jump related stuff
@@ -86,6 +98,8 @@ public class RollingBallController : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         visualMesh = transform.Find("Mesh");
         player = FindFirstObjectByType<PlayerController>();
+        behaviorAgent.GetVariable("TRBChillEvent", out TRBWannaChillChannel);
+
     }
 
     void Update()
@@ -93,11 +107,20 @@ public class RollingBallController : MonoBehaviour
         if (CanSeePlayer())
             Debug.Log("Can see player");
 
+        chillTimeCounter += Time.deltaTime;
 
-        if (CanTRBTransitionToChill())
-        {
-            coordinator.IsTRBReady(isReady: true);
-        }
+        if (isOnBreak)
+            breakTimeCounter += Time.deltaTime;
+
+        if (isBreakOnCooldown)
+            breakTimeCooldownCounter += Time.deltaTime;
+
+        DoesTRBWannaChill();
+
+        //if (CanTRBTransitionToChill())
+        //{
+        //    coordinator.IsTRBReady(isReady: true);
+        //}
 
         float rollAmount = agent.velocity.magnitude * rotationSpeed * Time.deltaTime;
         visualMesh.Rotate(Vector3.right, rollAmount, Space.Self);
@@ -127,6 +150,7 @@ public class RollingBallController : MonoBehaviour
                 break;
             case TRBState.Chilling:
                 MoveToSafePoint();
+                IsBreakOver();
                 break;
         }
 
@@ -137,57 +161,96 @@ public class RollingBallController : MonoBehaviour
 
     #region Coordinate Rendezvous point
 
-    private bool CanTRBTransitionToChill()
+    private void DoesTRBWannaChill()
     {
+        if (chillTimeCounter >= readyToChillTime && currentState == TRBState.Patrolling)
+            TRBWannaChillChannel.Value.SendEventMessage();
+
+    }
+
+    public void GoOnBreak()
+    {
+        isOnBreak = true;
+        currentState = TRBState.Chilling;
+    }
+
+    public bool CanTRBTransitionToChill()
+    {
+        //if (helperAgentState != States.GoToChillPoint)
+        //    return false;
+
+        if (isBreakOnCooldown)
+            return false;
+
         if (currentState != TRBState.Patrolling)
         {
-            chillTimeCounter = 0f;
             return false;
         }
 
         if (chillTimeCounter < readyToChillTime)
         {
-            chillTimeCounter += Time.deltaTime;
             return false;
         }
 
+        chillTimeCounter = 0f;
         return true;
-    }
-    void WhenTRBMeetsRequirements()
-    {
-        coordinator.IsTRBReady(isReady: true);
     }
 
     public void MoveToSafePoint()
     {
+
         jumpTimerCounter += Time.deltaTime;
 
         agent.stoppingDistance = 10f;
 
-        if (agent.remainingDistance > 5f)
-            agent.SetDestination(safetyPoint.position);
+        agent.SetDestination(safetyPoint.position);
 
-        if (agent.remainingDistance < 5f && jumpTimerCounter >= jumpTimer)
+        if (!agent.pathPending && agent.remainingDistance < 5f && jumpTimerCounter >= jumpTimer)
         {
-            if (!isJumping && isGrounded)
-                StartJump();
-
-            if (isJumping)
-            {
-                verticalVelocity += gravity * Time.deltaTime;
-
-                transform.position += Vector3.up * verticalVelocity * Time.deltaTime;
-
-                if (transform.position.y <= groundY)
-                {
-                    Land();
-                    currentState = TRBState.RunningAway;
-                    jumpTimerCounter = 0f;
-                }
-
-            }
+            JumpDuringBreak();
         }
 
+    }
+
+    private void JumpDuringBreak()
+    {
+        if (!isJumping && isGrounded)
+            StartJump();
+
+        if (isJumping)
+        {
+            verticalVelocity += gravity * Time.deltaTime;
+
+            transform.position += Vector3.up * verticalVelocity * Time.deltaTime;
+
+            if (transform.position.y <= groundY)
+            {
+                Land();
+                jumpTimerCounter = 0f;
+            }
+
+        }
+    }
+
+    private bool IsBreakOver()
+    {
+        if (breakTimeCounter >= breakTimeDuration)
+        {
+            BreakIsOver();
+            return true;
+        }
+
+        return false;
+    }
+
+    public void BreakIsOver()
+    {
+        breakTimeCooldownCounter = 0f;
+        isOnBreak = false;
+        breakTimeCounter = 0f;
+        chillTimeCounter = 0f;
+        agent.stoppingDistance = 2f;
+        SetSafePatrolPoint();
     }
 
     private void DoSomethingDuringBreak()

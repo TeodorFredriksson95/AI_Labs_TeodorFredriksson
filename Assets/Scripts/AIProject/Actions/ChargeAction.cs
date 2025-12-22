@@ -17,7 +17,6 @@ public partial class ChargeAction : Action
     private NavMeshAgent navAgent;
     private Transform player;
     private Rigidbody prb;
-    private bool hasHit;
     private PlayerController pc;
     protected override Status OnStart()
     {
@@ -25,7 +24,6 @@ public partial class ChargeAction : Action
         player = Target.Value.transform;
         prb = Target.Value.GetComponent<Rigidbody>();
         pc = Target.Value.GetComponent<PlayerController>();
-        hasHit = false;
         return Status.Running;
     }
 
@@ -57,7 +55,6 @@ public partial class ChargeAction : Action
             prb.angularVelocity = Vector3.zero;
 
             pc.SetKnockback(force);
-            hasHit = true;
             IsPlayerTagged.Value = true;
             Debug.Log("Enemy was knocked back");
         }

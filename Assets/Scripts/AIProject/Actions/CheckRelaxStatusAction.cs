@@ -13,6 +13,8 @@ public partial class CheckRelaxStatusAction : Action
     [SerializeReference] public BlackboardVariable<States> CurrentState;
     [SerializeReference] public BlackboardVariable<float> TimeToRelaxTimer;
 
+    private RollingBallController rbc;
+
     protected override Status OnStart()
     {
         return Status.Running;
@@ -20,7 +22,8 @@ public partial class CheckRelaxStatusAction : Action
 
     protected override Status OnUpdate()
     {
-        if (TimeOnPatrol < TimeToRelaxTimer || CurrentState.Value != States.Patrol)
+
+        if (TimeOnPatrol.Value < TimeToRelaxTimer.Value || CurrentState.Value == States.Chase)
             return Status.Running;
 
         return Status.Success;

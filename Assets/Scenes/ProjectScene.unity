@@ -1182,7 +1182,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f3619a95319ebb4981287642b75aa7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  behaviorAgent: {fileID: 1099714401}
   coordinator: {fileID: 447935420}
+  helperAgentState: 0
   rotationSpeed: 90
   jumpForce: 5
   waypoints:
@@ -1192,8 +1194,10 @@ MonoBehaviour:
   - {fileID: 1239778165}
   - {fileID: 1902392663}
   - {fileID: 1307739397}
-  readyToChillTime: 10
+  readyToChillTime: 4
   safetyPoint: {fileID: 903883252}
+  breakTimeDuration: 15
+  breakTimeCooldown: 15
   fleeRadius: 3
   fleeMaxSpeed: 10
   fleeTimer: 5
@@ -1201,6 +1205,7 @@ MonoBehaviour:
   fovAngle: 72
   Fov: 16.04
   shouldBallBeStill: 1
+  currentState: 0
 --- !u!195 &873471367
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1740,7 +1745,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Agent: {fileID: 1099714401}
-  trb: {fileID: 0}
+  trb: {fileID: 873471366}
 --- !u!1 &1116156207
 GameObject:
   m_ObjectHideFlags: 0

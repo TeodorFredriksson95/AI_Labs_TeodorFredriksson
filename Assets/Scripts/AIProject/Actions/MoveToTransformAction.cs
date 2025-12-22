@@ -20,6 +20,7 @@ public partial class MoveToTransformAction : Action
         safePoint = Transform.Value;
         navAgent.autoBraking = true;
 
+        navAgent.speed = 5f;
         navAgent.SetDestination(safePoint.position);
 
         return Status.Running;
