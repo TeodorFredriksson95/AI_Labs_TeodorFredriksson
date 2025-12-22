@@ -121,11 +121,6 @@ public class RollingBallController : MonoBehaviour
 
         DoesTRBWannaChill();
 
-        //if (CanTRBTransitionToChill())
-        //{
-        //    coordinator.IsTRBReady(isReady: true);
-        //}
-
         float rollAmount = agent.velocity.magnitude * rotationSpeed * Time.deltaTime;
         visualMesh.Rotate(Vector3.right, rollAmount, Space.Self);
 
@@ -161,8 +156,6 @@ public class RollingBallController : MonoBehaviour
     }
 
 
-
-
     #region Coordinate Rendezvous point
 
     private void DoesTRBWannaChill()
@@ -179,8 +172,6 @@ public class RollingBallController : MonoBehaviour
 
     public bool CanTRBTransitionToChill()
     {
-        //if (helperAgentState != States.GoToChillPoint)
-        //    return false;
 
         if (isBreakOnCooldown)
             return false;
@@ -441,6 +432,7 @@ public class RollingBallController : MonoBehaviour
         groundY = transform.position.y;
         verticalVelocity = jumpForce;
     }
+
 
     void Land()
     {

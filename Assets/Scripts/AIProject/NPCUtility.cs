@@ -5,11 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Assets.Scripts.AIProject
 {
+
     public class NPCUtility
     {
+        public static float gravity = -9.8f;
         public static bool IsTargetDetected(Transform origin, float radius, string tag)
         {
             Collider[] targetsInFov = Physics.OverlapSphere(origin.position, radius);
@@ -24,6 +27,7 @@ namespace Assets.Scripts.AIProject
             }
             return false;
         }
+
 
     }
 }
