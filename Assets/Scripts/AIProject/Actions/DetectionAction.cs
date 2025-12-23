@@ -28,11 +28,8 @@ public partial class DetectionAction : Action
         }
 
         IsPlayerDetected.Value = false;
-        return Status.Running;
+        return Status.Failure;
     }
 
-    protected override void OnEnd()
-    {
-    }
 }
 

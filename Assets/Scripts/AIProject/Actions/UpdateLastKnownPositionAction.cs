@@ -14,12 +14,15 @@ public partial class UpdateLastKnownPositionAction : Action
 
     protected override Status OnStart()
     {
+        Debug.Log("Running OnStart in updatelastknownposition");
+
         LastKnownPosition.Value = Enemy.Value.transform.position;
         return Status.Running;
     }
 
     protected override Status OnUpdate()
     {
+        Debug.Log("Running OnUpdate in updatelastknownposition");
         return Status.Success;
     }
 

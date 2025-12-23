@@ -1,9 +1,10 @@
 using System;
 using Unity.Behavior;
-using UnityEngine;
-using Action = Unity.Behavior.Action;
 using Unity.Properties;
+using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.EventSystems.EventTrigger;
+using Action = Unity.Behavior.Action;
 
 [Serializable, GeneratePropertyBag]
 [NodeDescription(name: "Charge", story: "[Agent] charges the [Target]", category: "Action", id: "42285eb63a5f6c6bde7cf87557c983c1")]
@@ -13,6 +14,7 @@ public partial class ChargeAction : Action
     [SerializeReference] public BlackboardVariable<GameObject> Target;
     [SerializeReference] public BlackboardVariable<bool> IsPlayerTagged;
     [SerializeReference] public BlackboardVariable<bool> ShouldAbort;
+    [SerializeReference] public BlackboardVariable<Vector3> LastKnownPosition;
 
 
     private NavMeshAgent navAgent;
@@ -37,6 +39,8 @@ public partial class ChargeAction : Action
             RuntimeUI.Instance.UpdateDeathsLabel();
             return Status.Success;
         }
+        LastKnownPosition.Value = player.transform.position;
+
         Vector3 direction = player.transform.position - Agent.Value.transform.position;
         float distance = direction.magnitude;
         navAgent.speed = 10f;

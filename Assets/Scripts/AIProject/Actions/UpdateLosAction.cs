@@ -23,6 +23,7 @@ public partial class UpdateLosAction : Action
 
     protected override Status OnUpdate()
     {
+        Debug.Log("updating enemy los");
         if (sensors.IsPlayerInLoS())
         {
             HasLineOfSight.Value = true;
