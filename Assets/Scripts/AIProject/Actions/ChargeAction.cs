@@ -36,14 +36,15 @@ public partial class ChargeAction : Action
     {
         if (IsPlayerTagged.Value)
         {
-            RuntimeUI.Instance.UpdateDeathsLabel();
+            navAgent.speed = 7f;
+            RuntimeUI.Instance.UpdateLivesLabel();
             return Status.Success;
         }
         LastKnownPosition.Value = player.transform.position;
 
         Vector3 direction = player.transform.position - Agent.Value.transform.position;
         float distance = direction.magnitude;
-        navAgent.speed = 10f;
+        navAgent.speed = 15f;
         navAgent.SetDestination(player.transform.position);
 
         if (distance < 2f)

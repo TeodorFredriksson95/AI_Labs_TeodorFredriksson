@@ -1,7 +1,7 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement name="GameFinished" style="flex-grow: 1; position: absolute; width: 100%; height: 100%;">
         <ui:VisualElement name="ScoreContainer" style="flex-grow: 0; flex-direction: row; align-items: auto; align-self: auto; align-content: auto; justify-content: flex-end; margin-top: 0; margin-bottom: auto; flex-basis: auto; top: 0; bottom: 0; position: relative;">
-            <ui:Label text="Deaths: 0/3" parse-escape-sequences="true" name="DeathsLabel" style="font-size: 30px; -unity-text-outline-color: rgb(0, 0, 0); -unity-font-style: bold; align-items: stretch; align-self: flex-end; margin-right: 50px; top: 0;" />
+            <ui:Label text="Lives: 3/3" parse-escape-sequences="true" name="LivesLabel" style="font-size: 30px; -unity-text-outline-color: rgb(0, 0, 0); -unity-font-style: bold; align-items: stretch; align-self: flex-end; margin-right: 50px; top: 0;" />
             <ui:Label text="Ball caught: 0/3" parse-escape-sequences="false" name="ScoreLabel" style="font-size: 30px; -unity-text-outline-color: rgb(0, 0, 0); -unity-font-style: bold; align-items: stretch; align-self: flex-end;" />
         </ui:VisualElement>
         <ui:VisualElement name="OverlayContainer" style="flex-grow: 1; display: none;">

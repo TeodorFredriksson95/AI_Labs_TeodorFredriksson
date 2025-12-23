@@ -9,13 +9,13 @@ public class RuntimeUI : MonoBehaviour
     private Button quitGameBtn;
 
     private Label scoreLabel;
-    private Label deathsLabel;
+    private Label livesLabel;
     private Label GameOverText;
 
     private VisualElement overlayContainer;
 
     private int score = 0;
-    private int deaths = 0;
+    private int lives = 3;
 
     bool isWinner;
 
@@ -33,7 +33,7 @@ public class RuntimeUI : MonoBehaviour
         quitGameBtn = uiDocument.rootVisualElement.Q("QuitGameBtn") as Button;
 
         scoreLabel = uiDocument.rootVisualElement.Q("ScoreLabel") as Label;
-        deathsLabel = uiDocument.rootVisualElement.Q("DeathsLabel") as Label;
+        livesLabel = uiDocument.rootVisualElement.Q("LivesLabel") as Label;
         GameOverText = uiDocument.rootVisualElement.Q("GameFinishedLabel") as Label;
 
         overlayContainer = uiDocument.rootVisualElement.Q("OverlayContainer") as VisualElement;
@@ -51,9 +51,9 @@ public class RuntimeUI : MonoBehaviour
     private void StartNewGame(ClickEvent evt)
     {
         score = 0;
-        deaths = 0;
+        lives = 0;
         scoreLabel.text = $"Ball caught: 0/3";
-        deathsLabel.text = $"Deaths: 0/3";
+        livesLabel.text = $"Lives: 3/3";
         overlayContainer.style.display = DisplayStyle.None;
         Time.timeScale = 1f;
 
@@ -71,16 +71,16 @@ public class RuntimeUI : MonoBehaviour
         UpdateIsWinner();
     }
 
-    public void UpdateDeathsLabel()
+    public void UpdateLivesLabel()
     {
-        deaths++;
-        deathsLabel.text = $"Deaths: {deaths}/3";
+        lives--;
+        livesLabel.text = $"Lives: {lives}/3";
         UpdateIsWinner();
     }
 
     void UpdateIsWinner()
     {
-        if (deaths == 3)
+        if (lives == 0)
         {
             isWinner = false;
             ShowOverlay();

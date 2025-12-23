@@ -168,7 +168,6 @@ public class RollingBallController : MonoBehaviour
             coordinator.IsTRBReady(true);
         else
             coordinator.IsTRBReady(false);
-            //TRBWannaChillChannel.Value.SendEventMessage();
 
     }
 
@@ -202,7 +201,7 @@ public class RollingBallController : MonoBehaviour
 
         jumpTimerCounter += Time.deltaTime;
 
-        agent.stoppingDistance = 10f;
+        agent.stoppingDistance = 5f;
 
         agent.SetDestination(safetyPoint.position);
 
@@ -213,13 +212,18 @@ public class RollingBallController : MonoBehaviour
                 if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
                 {
                     isOnBreak = true;
+
+                    if (!agent.pathPending && agent.remainingDistance < 2f && jumpTimerCounter >= jumpTimer)
+                    {
+                        JumpDuringBreak();
+                    }
                 }
             }
         }
 
-        if (!agent.pathPending && agent.remainingDistance < 5f && jumpTimerCounter >= jumpTimer)
+        if (!agent.pathPending && agent.remainingDistance < 2f && jumpTimerCounter >= jumpTimer)
         {
-            JumpDuringBreak();
+            //JumpDuringBreak();
         }
 
     }
