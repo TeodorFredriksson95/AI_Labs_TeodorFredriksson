@@ -4640,7 +4640,6 @@ MonoBehaviour:
   safetyPoint: {fileID: 903883252}
   breakTimeDuration: 15
   breakTimeCooldown: 15
-  fleeRadius: 3
   fleeMaxSpeed: 10
   fleeTimer: 3
   evadeWeight: 0.2
