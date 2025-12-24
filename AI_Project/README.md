@@ -3,17 +3,12 @@
 ## 1. Game / Prototype Description
 
 ### Overview
-Briefly describe the game or prototype.
 The game consists of a small scene, featuring a player character and two NPC agents, named *'The Rolling Ball, aka "TRB"'* and *'Helper Agent, aka "H:A"*. The game objective of the game is to catch The Rolling Ball (TRB), while simultaneously avoiding the Helper Agent's (H:A) efforts to interrupt the players advancements. My ambition was to create a geometrically interesting scene which in turn would allow for more interesting agent navigation. It's worth to note that while the project does contain a gameplay loop, this project is focused around the behavior, movement and decision-making of the agents.
 
 ### Player Interaction
-What can the player do?  
-(e.g., movement, combat, interaction, objectives)
 The player can run and jump in order to catch TRB and avoid H:A.
 
-### AI Behaviour
-What does the AI do in the game?  
-(e.g., patrol, chase, flee, coordinate, plan)
+### AI Behaviour  
 **TRB**
 - Plans a path from it's current location to a desired location based on pre-defined waypoints, either at random or in order, depending on whether or not the agent feels threatened by the player's presence.
 - Navigates between waypoints.
@@ -45,12 +40,7 @@ What does the AI do in the game?
 - Avoidance (inherent by Unity NavMeshAgent)
 
 ### How the Techniques Are Combined
-Explain how these systems interact.
-For example:
-- FSM or BT choosing goals or actions
-- A* providing paths
-- Steering handling local movement
-- GOAP selecting high-level plans
+
 **TRB**
 Due to TRBs limited complexity, the decision was made to use a Finite State Machine (FSM) for its AI capabilites. The FSM is responsible for alternating between states such as "Patrol", "ReturnToPatrol", "Startled", "RunningAway", and "Chilling". The transitions between these states is determined mainly by a perception system which features a frontal cone detection system and a rear "jump scare" radius.
 
@@ -71,7 +61,6 @@ Both TRB and H:A rely heavily on perception of their environment as a determinis
 ## 3. Implementation Notes
 
 ### Key Classes / Blueprints
-List important scripts, components, or blueprints and their responsibilities.
 
 ### Components
 - NavMesh
@@ -85,8 +74,6 @@ List important scripts, components, or blueprints and their responsibilities.
   - A script that faciliates the agents detection of the player and maintenance of line of sight status.
 
 ### Data Structures
-Describe key data structures used:
-- Grids, graphs, blackboards, world states, action lists, etc.
 - Blackboard
   - Maintains a large majority of the relevant data necessary for the H:A decision-making process.
 - Unity Behavior Graph
