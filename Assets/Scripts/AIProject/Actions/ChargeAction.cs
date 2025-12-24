@@ -67,7 +67,6 @@ public partial class ChargeAction : Action
 
             pc.SetKnockback(force);
             IsPlayerTagged.Value = true;
-            Debug.Log("Enemy was knocked back");
         }
 
         return Status.Running;

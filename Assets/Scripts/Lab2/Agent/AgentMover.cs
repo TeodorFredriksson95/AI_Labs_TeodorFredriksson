@@ -19,11 +19,6 @@ public class AgentMover : MonoBehaviour
         pc = FindFirstObjectByType<PlayerController>();
         StartCoroutine(FollowPlayer());
 
-        //Node startNode = gm.GetNodeFromWorldPosition(transform.position);
-        //Vector3 targetPos = new Vector3(5, 0, 5);
-        //Node endNode = gm.GetNodeFromWorldPosition(targetPos);
-        //var path = pathfinder.FindPath(startNode, endNode);
-        //FollowPath(path);
     }
 
     IEnumerator FollowPlayer()

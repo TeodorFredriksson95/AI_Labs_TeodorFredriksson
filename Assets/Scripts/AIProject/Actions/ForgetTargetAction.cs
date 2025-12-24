@@ -18,7 +18,6 @@ public partial class ForgetTargetAction : Action
         TimeSinceLastSeen.Value = 0f;
         IsPlayerDetected.Value = false;
         HasLineOfSight.Value = false;
-        Debug.Log("Perception of enemy was forgotten");
         return Status.Success;
     }
 

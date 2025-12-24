@@ -113,7 +113,6 @@ public class RollingBallController : MonoBehaviour
     void Update()
     {
         if (CanSeePlayer())
-            Debug.Log("Can see player");
 
         chillTimeCounter += Time.deltaTime;
 
@@ -301,7 +300,6 @@ public class RollingBallController : MonoBehaviour
     {
         if (IsPlayerInRearHalfCircle() && !agent.isOnOffMeshLink)
         {
-            Debug.Log("Was startled");
             currentState = TRBState.Startled;
             return;
         }
@@ -319,7 +317,6 @@ public class RollingBallController : MonoBehaviour
 
     void SetSafePatrolPoint()
     {
-        Debug.Log("SetSafePatrolPoint triggered");
         float dotProd = 0f;
 
         for (int i = 0; i < waypoints.Length; i++)
@@ -391,7 +388,6 @@ public class RollingBallController : MonoBehaviour
                 {
                     TRBDetectedEnemyChannel.Value.SendEventMessage(c.gameObject);
                     ShouldAbort.Value = true;
-                    Debug.Log("should abort:  " + ShouldAbort.Value);
                     currentState = TRBState.RunningAway;
                     return true;
                 }

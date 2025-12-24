@@ -41,13 +41,11 @@ public partial class MoveToTransformAction : Action
         {
             if (!navAgent.hasPath || navAgent.velocity.sqrMagnitude == 0f)
             {
-                Debug.Log("Agent arrived at safe point");
                 return Status.Success;
             }
         }
 
 
-        Debug.Log("Agent reached safepoint");
         return Status.Running;
     }
 

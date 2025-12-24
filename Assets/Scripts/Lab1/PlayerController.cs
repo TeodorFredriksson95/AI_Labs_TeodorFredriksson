@@ -6,15 +6,12 @@ using UnityEngine.UIElements;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 5f;
-    public Vector2 moveVal;
-    private Rigidbody rb;
-    Vector3 input;
-    private bool isGrounded = false;
     [SerializeField] float jumpForce = 5f;
-    private Vector2 lookVal;
-    Quaternion rotation;
+    private bool isGrounded = false;
 
     public Vector3 playerVelocity;
+    public Vector2 moveVal;
+    private Rigidbody rb;
 
     private bool applyForce;
     private Vector3 knockBackForce;
