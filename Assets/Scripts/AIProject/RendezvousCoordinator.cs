@@ -20,8 +20,6 @@ public class RendezvousCoordinator : MonoBehaviour
 
     public bool BothReady => IsHelperReadyToChill.Value && TRBReady;
 
-    public event System.Action OnBothReady;
-
     private void OnEnable()
     {
 

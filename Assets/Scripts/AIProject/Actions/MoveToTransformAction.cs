@@ -12,13 +12,10 @@ public partial class MoveToTransformAction : Action
     [SerializeReference] public BlackboardVariable<GameObject> Agent;
     [SerializeReference] public BlackboardVariable<Transform> Transform;
     [SerializeReference] private BlackboardVariable<TrbDetectedEnemy> TRBDetectedEnemyChannel;
-    [SerializeReference] private BlackboardVariable<bool> ShouldAbort;
-
 
     private NavMeshAgent navAgent;
     private Transform safePoint;
 
-    private bool shouldAbort;
     protected override Status OnStart()
     {
         navAgent = Agent.Value.GetComponent<NavMeshAgent>();
@@ -26,8 +23,6 @@ public partial class MoveToTransformAction : Action
         navAgent.autoBraking = true;
 
         navAgent.speed = 5f;
-
-        //TRBDetectedEnemyChannel.Value.Event += OnTRBDetectedEnemy;
 
         return Status.Running;
     }
@@ -45,14 +40,9 @@ public partial class MoveToTransformAction : Action
             }
         }
 
-
         return Status.Running;
     }
 
-    private void OnTRBDetectedEnemy(GameObject _)
-    {
-        shouldAbort = true;
-    }
 
 }
 

@@ -139,6 +139,8 @@ public class EnemyPatrol : MonoBehaviour
         if (transform.position == patrolPoints[destPoint].position) currentState = GuardState.Patrolling;
     }
 
+
+#if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
         // Draw aggro radius
@@ -170,6 +172,7 @@ public class EnemyPatrol : MonoBehaviour
             }
         }
     }
+#endif
 
     bool CanSeePlayer()
     {

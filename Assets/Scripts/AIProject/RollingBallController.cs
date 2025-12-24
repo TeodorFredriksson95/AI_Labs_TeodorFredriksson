@@ -58,7 +58,6 @@ public class RollingBallController : MonoBehaviour
     private bool isOnBreak;
 
     [Header("Flee Behavior")]
-    [SerializeField] private float fleeRadius = 3f;
     [SerializeField] private float fleeMaxSpeed = 10f;
     [SerializeField] private float fleeTimer = 5f;
     private float fleeTimerCounter = 0f;
