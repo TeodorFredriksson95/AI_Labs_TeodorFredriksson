@@ -51,7 +51,7 @@ public class RuntimeUI : MonoBehaviour
     private void StartNewGame(ClickEvent evt)
     {
         score = 0;
-        lives = 0;
+        lives = 3;
         scoreLabel.text = $"Ball caught: 0/3";
         livesLabel.text = $"Lives: 3/3";
         overlayContainer.style.display = DisplayStyle.None;

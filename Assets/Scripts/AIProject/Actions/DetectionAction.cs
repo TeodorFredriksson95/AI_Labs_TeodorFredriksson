@@ -28,7 +28,7 @@ public partial class DetectionAction : Action
         }
 
         IsPlayerDetected.Value = false;
-        return Status.Failure;
+        return Status.Running;
     }
 
 }

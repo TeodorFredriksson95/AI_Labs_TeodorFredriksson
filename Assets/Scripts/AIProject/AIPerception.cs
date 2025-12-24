@@ -52,9 +52,10 @@ public class AIPerception : MonoBehaviour
         Vector3 target = targetPos + Vector3.up * 0.5f;
         Vector3 dir = target - origin;
 
-        if (Physics.Raycast(origin, dir, out hit))
+        if (Physics.Raycast(origin, dir, out hit, 20f))
         {
             if (hit.transform == player) return true;
+            
         }
 
         return false;
